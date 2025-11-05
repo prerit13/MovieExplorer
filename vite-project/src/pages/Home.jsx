@@ -1,19 +1,45 @@
-import React from "react";
+import React, { use } from "react";
 import MovieList from "../components/MovieList";
+import { useState,useEffect, useRef} from "react";
 
 function Home() {
 
+  const [movies, SetMovies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef();
+
+  const fetchMovies = async (query)=>{
+     setLoading (true);
+     const res= await fetch (`http://www.omdbapi.com/?apikey=6d50cdca&s=${query}`)
+     const data= await res.json();
+     console.log(data);
+      SetMovies(data.Search || []);
+      setLoading (false); 
+  }
+
+  useEffect(()=>{
+    fetchMovies("Avengers");
+  },[])
+
+  const handleSearch = (e)=>{
+    e.preventDefault();
+    const query = inputRef.current.value.trim();
+    if (query){
+      fetchMovies (query);
+    }
+  }
+
     return (
         <div className="home">
-        <form>
+        <form onSubmit={handleSearch}>
           <input
+            ref={inputRef}
             className="searchInput"
             placeholder="Search for a movie..."
           />
           <button type="submit">Search 🔎</button>
         </form>
-
-        <MovieList/>
+           {loading ? <p>Loading...</p>: <MovieList movies={movies}/>}
 
       </div>
     )
